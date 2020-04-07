@@ -15,6 +15,7 @@ public class ArgumentsParsingController {
     String pathToNircmd = "pathToNircmd";
     String intervalInSecond = "intervalInSecond";
     String countTimer = "countTimer";
+    String helpParameters = "help";
 
 
     Option pathToNircmdOption = new Option(pathToNircmd, pathToNircmd, true, pathToNircmd);
@@ -29,12 +30,15 @@ public class ArgumentsParsingController {
     countTimerOption.setRequired(false);
     options.addOption(countTimerOption);
 
+    Option helpOption = new Option(helpParameters, helpParameters, false, helpParameters);
+    helpOption.setRequired(false);
+    options.addOption(helpOption);
 
     try {
       CommandLineParser parser = new DefaultParser();
       CommandLine cmd = parser.parse(options, args);
 
-      if (cmd.hasOption("help")) {
+      if (cmd.hasOption(helpParameters)) {
         throw new ParseException("Find help");
       }
 
