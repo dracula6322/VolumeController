@@ -9,14 +9,15 @@ import org.slf4j.Logger;
 
 public class ArgumentsParsingController {
 
+  public static final String pathToNircmd = "pathToNircmd";
+  public static final String intervalInSecond = "intervalInSecond";
+  public static final String countTimer = "countTimer";
+  public static final String sleepInTheEnd = "sleepInTheEnd";
+  public static final String helpParameters = "help";
+
   public static ProgramArguments parsingParams(String[] args, ProgramArguments defaultValue, Logger logger) {
 
     Options options = new Options();
-    String pathToNircmd = "pathToNircmd";
-    String intervalInSecond = "intervalInSecond";
-    String countTimer = "countTimer";
-    String helpParameters = "help";
-
 
     Option pathToNircmdOption = new Option(pathToNircmd, pathToNircmd, true, pathToNircmd);
     pathToNircmdOption.setRequired(false);
@@ -33,6 +34,10 @@ public class ArgumentsParsingController {
     Option helpOption = new Option(helpParameters, helpParameters, false, helpParameters);
     helpOption.setRequired(false);
     options.addOption(helpOption);
+
+    Option sleepInTheEndOptions = new Option(sleepInTheEnd, sleepInTheEnd, true, sleepInTheEnd);
+    sleepInTheEndOptions.setRequired(false);
+    options.addOption(sleepInTheEndOptions);
 
     try {
       CommandLineParser parser = new DefaultParser();
@@ -52,6 +57,12 @@ public class ArgumentsParsingController {
 
       if (cmd.hasOption(countTimer)) {
         defaultValue.countTimer = Integer.parseInt(cmd.getOptionValue(countTimer));
+      }
+
+      if (cmd.hasOption(sleepInTheEnd)) {
+        String value = cmd.getOptionValue(sleepInTheEnd);
+        System.out.println("value = " + value);
+        defaultValue.isSleepInTheEnd = value.equals("on");
       }
 
     } catch (ParseException e) {

@@ -1,14 +1,15 @@
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 
 @Data
+@AllArgsConstructor
 public class ProgramArguments {
 
   @NonNull
   public String pathToNircmd;
-  @NonNull
   public int intervalInSecond;
-  @NonNull
   public int countTimer;
+  public boolean isSleepInTheEnd;
 
 }

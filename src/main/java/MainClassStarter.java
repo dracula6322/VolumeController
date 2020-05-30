@@ -25,16 +25,10 @@ public class MainClassStarter {
   public static final long MAX_VOLUME_VALUE = 65535;
   public static final long MIN_VOLUME_VALUE = 0;
 
+
   public static void main(String[] args) {
 
     Logger logger = LoggerFactory.getLogger("mainLogger");
-
-    String pathToNircmd = "E:\\Programs\\Nircmd\\nircmdc.exe";
-    int intervalInSecond = 120;
-    int countTimer = 20;
-
-    ProgramArguments defaultValue = new ProgramArguments(pathToNircmd, intervalInSecond, countTimer);
-    ProgramArguments parsingResult = ArgumentsParsingController.parsingParams(args, defaultValue, logger);
 
     ExecutorService threadPool = Executors.newCachedThreadPool(runnable -> {
       Thread thread = new Thread(runnable);
@@ -42,15 +36,36 @@ public class MainClassStarter {
       return thread;
     });
 
+    runChangeSound(args, logger, threadPool);
+  }
+
+  public static void runChangeSound(String[] args, Logger logger, ExecutorService threadPool) {
+
+    String pathToNircmd = "E:\\Programs\\Nircmd\\nircmdc.exe";
+    int intervalInSecond = 1;
+    int countTimer = 1;
+    boolean isSleepInTheEnd = false;
+
+    ProgramArguments defaultValue = new ProgramArguments(pathToNircmd, intervalInSecond, countTimer, isSleepInTheEnd);
+    ProgramArguments parsingResult = ArgumentsParsingController.parsingParams(args, defaultValue, logger);
+
     pathToNircmd = parsingResult.getPathToNircmd();
     intervalInSecond = parsingResult.getIntervalInSecond();
     countTimer = parsingResult.getCountTimer();
+    isSleepInTheEnd = parsingResult.isSleepInTheEnd();
 
-    startChangeSound(pathToNircmd, threadPool, intervalInSecond, countTimer, logger);
+    System.out.println("pathToNircmd = " + pathToNircmd);
+    System.out.println("intervalInSecond = " + intervalInSecond);
+    System.out.println("countTimer = " + countTimer);
+    System.out.println("isSleepInTheEnd = " + isSleepInTheEnd);
+
+    startChangeSound(pathToNircmd, threadPool, intervalInSecond, countTimer, logger, isSleepInTheEnd);
   }
 
   private static void startChangeSound(String pathToNircmd, ExecutorService threadPool, int intervalInSeconds,
-      int countTimer, Logger logger) {
+      int countTimer, Logger logger, boolean isSleepInTheEnd) {
+
+    logger.info("startChangeSound " + Thread.currentThread());
 
     File pathToNircmdExe = new File(pathToNircmd);
     if (!pathToNircmdExe.exists()) {
@@ -59,17 +74,19 @@ public class MainClassStarter {
     CountDownLatch countDownLatch = new CountDownLatch(1);
     threadPool.submit(() -> {
       for (int i = 0; i < countTimer; i++) {
-        logger.info(i + "/" + countTimer);
-        changeSoundLevel(pathToNircmd, -MAX_VOLUME_VALUE / countTimer, threadPool,
-            threadPool);
+
+        changeSoundLevel(pathToNircmd, -MAX_VOLUME_VALUE / countTimer, threadPool, threadPool);
         try {
           Thread.sleep(TimeUnit.SECONDS.toMillis(intervalInSeconds));
         } catch (InterruptedException e) {
           logger.error(e.getMessage());
           e.printStackTrace();
         }
+        logger.info(i + "/" + countTimer);
       }
-      standByMode(pathToNircmd, threadPool, threadPool);
+      if (isSleepInTheEnd) {
+        standByMode(pathToNircmd, threadPool, threadPool);
+      }
       countDownLatch.countDown();
     });
 
