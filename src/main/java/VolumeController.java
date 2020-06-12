@@ -54,6 +54,13 @@ public class VolumeController {
 
     logger.info("startChangeSound is running in " + Thread.currentThread());
 
+
+    logger.info("pathToNircmd = " + pathToNircmd);
+    logger.info("intervalInSecond = " + intervalInSeconds);
+    logger.info("countTimer = " + countTimer);
+    logger.info("isSleepInTheEnd = " + isSleepInTheEnd);
+    logger.info("isScreenOffInTheEnd = " + isScreenOff);
+
     File pathToNircmdExe = new File(pathToNircmd);
     if (!pathToNircmdExe.exists()) {
       logger.error("pathToNircmdExe is empty");

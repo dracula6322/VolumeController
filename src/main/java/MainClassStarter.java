@@ -12,12 +12,6 @@ public class MainClassStarter {
   public static void main(String[] args) {
 
     Logger logger = LoggerFactory.getLogger("mainLogger");
-    ExecutorService threadPool = Executors.newCachedThreadPool(runnable -> {
-      Thread thread = new Thread(runnable);
-      logger.info("thread created= " + thread);
-      return thread;
-    });
-
     new MainClassStarter().runChangeSound(args, logger);
   }
 
@@ -25,13 +19,6 @@ public class MainClassStarter {
   public void runChangeSound(String[] args, Logger logger) {
 
     ProgramArguments programArguments = argumentsParsingController.getProgramArgumentsFromArgs(args, logger);
-
-    logger.info("pathToNircmd = " + programArguments.pathToNircmd);
-    logger.info("intervalInSecond = " + programArguments.intervalInSecond);
-    logger.info("countTimer = " + programArguments.countTimer);
-    logger.info("isSleepInTheEnd = " + programArguments.isSleepInTheEnd);
-    logger.info("isScreenOffInTheEnd = " + programArguments.isScreeOffInTheEnd);
-
     startChangeSound(programArguments, logger);
   }
 

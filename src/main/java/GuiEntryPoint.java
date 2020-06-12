@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class GuiEntryPoint {
 
-  public static Future<?> future;
+  public Future<?> future;
 
   public static void main(String[] args) {
 
@@ -26,38 +26,86 @@ public class GuiEntryPoint {
   public void createGUI(Logger logger) {
 
     ExecutorService gutExecutorService = Executors.newSingleThreadExecutor(runnable -> {
-
       Thread thread = new Thread(runnable);
-      logger.info("gutExecutorService = " + thread);
+      logger.info("gutExecutorService thread crated = " + thread);
       return thread;
     });
 
-    ExecutorService threadPool = Executors.newCachedThreadPool(runnable -> {
-      Thread thread = new Thread(runnable);
-      logger.info("threadPool was created in newCachedThreadPool threadPool = " + thread);
-      return thread;
-    });
+    initView(logger, gutExecutorService);
+
+  }
+
+  private void initView(Logger logger, ExecutorService gutExecutorService) {
+
+    int countRow = 0;
+
+    JFrame jFrame = new JFrame();
+    jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    JPanel newPanel = new JPanel(new GridBagLayout());
 
     JLabel countTextLabel = new JLabel("Enter count number: ");
-    JLabel intervalValue = new JLabel("Enter interval size in second: ");
-    JTextField textUsername = new JTextField(20);
-    JTextField fieldPassword = new JTextField(20);
-    JButton startCount = new JButton("Start count down");
-    JButton stopThread = new JButton("Stop thread");
-
+    JLabel intervalSizeLabel = new JLabel("Enter interval size in second: ");
+    JTextField countTextField = new JTextField(20);
+    JTextField intervalSizeField = new JTextField(20);
     JCheckBox isSendInSleep = new JCheckBox("Отправить в сон?", false);
     JCheckBox isScreenOffCheckBox = new JCheckBox("Выключить монитор?", false);
 
-    stopThread.addActionListener(actionEvent -> {
-      if (future != null && !future.isDone() && !future.isCancelled()) {
-        boolean result = future.cancel(true);
-        logger.info("We stop thread result = " + result);
-        logger.info("We stop thread");
-      } else {
-        logger.info("Thread was not starting");
-      }
-    });
+    JButton stopThreadButton = getStopWorkButton(logger);
 
+    JButton startWorkButton = getStartWorkButton(logger, countTextField, intervalSizeField, isSendInSleep,
+        isScreenOffCheckBox, gutExecutorService);
+
+    GridBagConstraints constraints = new GridBagConstraints();
+    constraints.anchor = GridBagConstraints.WEST;
+    constraints.insets = new Insets(10, 10, 10, 10);
+
+    constraints.gridx = 0;
+    constraints.gridy = countRow++;
+    newPanel.add(countTextLabel, constraints);
+
+    constraints.gridx = 1;
+    newPanel.add(countTextField, constraints);
+
+    constraints.gridx = 0;
+    constraints.gridy = countRow++;
+    newPanel.add(intervalSizeLabel, constraints);
+
+    constraints.gridx = 1;
+    newPanel.add(intervalSizeField, constraints);
+
+    constraints.gridx = 0;
+    constraints.gridy = countRow;
+    newPanel.add(startWorkButton, constraints);
+
+    constraints.gridx = 1;
+    constraints.gridy = countRow++;
+    newPanel.add(stopThreadButton, constraints);
+
+    constraints.gridx = 0;
+    constraints.gridy = countRow++;
+    newPanel.add(isSendInSleep, constraints);
+
+    constraints.gridx = 0;
+    constraints.gridy = countRow++;
+    newPanel.add(isScreenOffCheckBox, constraints);
+
+    constraints.gridx = 0;
+    constraints.gridy = countRow;
+    constraints.gridwidth = 2;
+    constraints.anchor = GridBagConstraints.CENTER;
+
+    getDebugTextArea(newPanel, constraints);
+
+    jFrame.add(newPanel);
+    jFrame.pack();
+    jFrame.setLocationRelativeTo(null);
+    jFrame.setVisible(true);
+
+  }
+
+  private JButton getStartWorkButton(Logger logger, JTextField textUsername, JTextField fieldPassword,
+      JCheckBox isSendInSleep, JCheckBox isScreenOffCheckBox, ExecutorService gutExecutorService) {
+    JButton startCount = new JButton("Start count down");
     startCount.addActionListener(actionEvent -> {
 
       int countNumber;
@@ -83,80 +131,44 @@ public class GuiEntryPoint {
       };
 
       if (future != null && !future.isDone() && !future.isCancelled()) {
-        logger.info("future cancel");
-        future.cancel(true);
+        stopThread(logger);
       }
 
-      Logger logger1 = LoggerFactory.getLogger("mainLogger");
       future = gutExecutorService.submit(() -> {
-        logger1.info("runChangeSound");
-        new MainClassStarter().runChangeSound(args, logger1);
-        logger1.info("job done");
+        logger.info("runChangeSound");
+        new MainClassStarter().runChangeSound(args, logger);
+        logger.info("job done");
       });
 
     });
 
-    JFrame jFrame = new JFrame("JPanel Demo Program");
-    jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    JPanel newPanel = new JPanel(new GridBagLayout());
+    return startCount;
+  }
 
-    GridBagConstraints constraints = new GridBagConstraints();
-    constraints.anchor = GridBagConstraints.WEST;
-    constraints.insets = new Insets(10, 10, 10, 10);
+  private JButton getStopWorkButton(Logger logger) {
+    JButton stopThread = new JButton("Stop thread");
+    stopThread.addActionListener(actionEvent -> {
+      stopThread(logger);
+    });
+    return stopThread;
+  }
 
-    constraints.gridx = 0;
-    constraints.gridy = 0;
-    newPanel.add(countTextLabel, constraints);
+  private void getDebugTextArea(JPanel newPanel, GridBagConstraints constraints) {
 
-    constraints.gridx = 1;
-    newPanel.add(textUsername, constraints);
-
-    constraints.gridx = 0;
-    constraints.gridy = 1;
-    newPanel.add(intervalValue, constraints);
-
-    constraints.gridx = 1;
-    newPanel.add(fieldPassword, constraints);
-
-    constraints.gridx = 0;
-    constraints.gridy = 2;
-    newPanel.add(startCount, constraints);
-
-    constraints.gridx = 1;
-    constraints.gridy = 2;
-    newPanel.add(stopThread, constraints);
-
-    constraints.gridx = 0;
-    constraints.gridy = 3;
-    newPanel.add(isSendInSleep, constraints);
-
-    constraints.gridx = 0;
-    constraints.gridy = 4;
-    newPanel.add(isScreenOffCheckBox, constraints);
-
-    constraints.gridx = 0;
-    constraints.gridy = 5;
-    constraints.gridwidth = 2;
-    constraints.anchor = GridBagConstraints.CENTER;
-
-    JTextArea debug;
-    debug = new JTextArea(16, 58);
+    JTextArea debug = new JTextArea(16, 58);
     debug.setEditable(false);
     JScrollPane scroll = new JScrollPane(debug);
     scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     newPanel.add(scroll, constraints);
-
-    // set border for the panel
-    newPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Login Panel"));
-
-    // add the panel to this frame
-    jFrame.add(newPanel);
-
-    jFrame.pack();
-    jFrame.setLocationRelativeTo(null);
-    jFrame.setVisible(true);
-
   }
 
+  private void stopThread(Logger logger) {
+    if (future != null && !future.isDone() && !future.isCancelled()) {
+      boolean result = future.cancel(true);
+      logger.info("We stop thread result = " + result);
+    } else {
+      logger.info("Thread was not starting");
+    }
+  }
 
 }
