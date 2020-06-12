@@ -11,5 +11,5 @@ public class ProgramArguments {
   public int intervalInSecond;
   public int countTimer;
   public boolean isSleepInTheEnd;
-
+  public boolean isScreeOffInTheEnd;
 }

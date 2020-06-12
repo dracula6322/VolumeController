@@ -1,6 +1,4 @@
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -10,12 +8,11 @@ import org.slf4j.LoggerFactory;
 
 public class GuiEntryPoint {
 
-  public static JTextArea debug;
-  public static ExecutorService gutExecutorService = Executors.newSingleThreadExecutor();
   public static Future<?> future;
 
-
   public static void main(String[] args) {
+
+    Logger logger = LoggerFactory.getLogger(GuiEntryPoint.class);
 
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -23,19 +20,21 @@ public class GuiEntryPoint {
       ex.printStackTrace();
     }
 
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        new GuiEntryPoint().createGUI(LoggerFactory.getLogger(GuiEntryPoint.class));
-      }
-    });
+    SwingUtilities.invokeLater(() -> new GuiEntryPoint().createGUI(logger));
   }
 
   public void createGUI(Logger logger) {
 
+    ExecutorService gutExecutorService = Executors.newSingleThreadExecutor(runnable -> {
+
+      Thread thread = new Thread(runnable);
+      logger.info("gutExecutorService = " + thread);
+      return thread;
+    });
+
     ExecutorService threadPool = Executors.newCachedThreadPool(runnable -> {
       Thread thread = new Thread(runnable);
-      logger.info("thread = " + thread);
+      logger.info("threadPool was created in newCachedThreadPool threadPool = " + thread);
       return thread;
     });
 
@@ -47,55 +46,54 @@ public class GuiEntryPoint {
     JButton stopThread = new JButton("Stop thread");
 
     JCheckBox isSendInSleep = new JCheckBox("Отправить в сон?", false);
+    JCheckBox isScreenOffCheckBox = new JCheckBox("Выключить монитор?", false);
 
-    stopThread.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        if (future != null && !future.isDone() && !future.isCancelled()) {
-          future.cancel(true);
-          debug.append("We stop thread\n");
-        } else {
-          debug.append("Thread was not starting\n");
-        }
+    stopThread.addActionListener(actionEvent -> {
+      if (future != null && !future.isDone() && !future.isCancelled()) {
+        boolean result = future.cancel(true);
+        logger.info("We stop thread result = " + result);
+        logger.info("We stop thread");
+      } else {
+        logger.info("Thread was not starting");
       }
     });
 
-    startCount.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
+    startCount.addActionListener(actionEvent -> {
 
-        int countNumber;
-        try {
-          countNumber = Integer.parseInt(textUsername.getText());
-        } catch (Exception e) {
-          debug.append("Error parsing count number\n");
-          return;
-        }
-
-        int intervalInSeconds;
-        try {
-          intervalInSeconds = Integer.parseInt(fieldPassword.getText());
-        } catch (Exception e) {
-          debug.append("Error parsing interval size\n");
-          return;
-        }
-
-        String[] args = new String[]{"--" + ArgumentsParsingController.countTimer, String.valueOf(countNumber),
-            "--" + ArgumentsParsingController.intervalInSecond, String.valueOf(intervalInSeconds),
-                "--" + ArgumentsParsingController.sleepInTheEnd, isSendInSleep.isSelected() ? "on" : "off"
-        };
-
-        if (future != null && !future.isDone() && !future.isCancelled()) {
-          future.cancel(true);
-        }
-
-        Logger logger = LoggerFactory.getLogger("mainLogger");
-        future = gutExecutorService.submit(() -> {
-          MainClassStarter.runChangeSound(args, logger, threadPool);
-
-        });
-
+      int countNumber;
+      try {
+        countNumber = Integer.parseInt(textUsername.getText());
+      } catch (Exception e) {
+        logger.error("Error parsing count number\n");
+        return;
       }
+
+      int intervalInSeconds;
+      try {
+        intervalInSeconds = Integer.parseInt(fieldPassword.getText());
+      } catch (Exception e) {
+        logger.error("Error parsing interval size\n");
+        return;
+      }
+
+      String[] args = new String[]{"--" + ArgumentsParsingController.countTimer, String.valueOf(countNumber),
+          "--" + ArgumentsParsingController.intervalInSecond, String.valueOf(intervalInSeconds),
+          "--" + ArgumentsParsingController.sleepInTheEnd, isSendInSleep.isSelected() ? "on" : "off",
+          "--" + ArgumentsParsingController.screenOffInTheEnd, isScreenOffCheckBox.isSelected() ? "on" : "off",
+      };
+
+      if (future != null && !future.isDone() && !future.isCancelled()) {
+        logger.info("future cancel");
+        future.cancel(true);
+      }
+
+      Logger logger1 = LoggerFactory.getLogger("mainLogger");
+      future = gutExecutorService.submit(() -> {
+        logger1.info("runChangeSound");
+        new MainClassStarter().runChangeSound(args, logger1);
+        logger1.info("job done");
+      });
+
     });
 
     JFrame jFrame = new JFrame("JPanel Demo Program");
@@ -134,8 +132,14 @@ public class GuiEntryPoint {
 
     constraints.gridx = 0;
     constraints.gridy = 4;
+    newPanel.add(isScreenOffCheckBox, constraints);
+
+    constraints.gridx = 0;
+    constraints.gridy = 5;
     constraints.gridwidth = 2;
     constraints.anchor = GridBagConstraints.CENTER;
+
+    JTextArea debug;
     debug = new JTextArea(16, 58);
     debug.setEditable(false);
     JScrollPane scroll = new JScrollPane(debug);
