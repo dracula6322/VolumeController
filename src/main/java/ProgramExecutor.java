@@ -15,12 +15,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +77,7 @@ public class ProgramExecutor {
     try {
       Runtime runtime = Runtime.getRuntime();
       Process command;
-      if (TextUtils.isEmpty(rootDir)) {
+      if (StringUtils.isEmpty(rootDir)) {
         command = runtime.exec(commandArray.toArray(new String[]{}));
       } else {
         command = runtime.exec(commandArray.toArray(new String[]{}), new String[0], new File(rootDir));

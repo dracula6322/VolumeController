@@ -17,7 +17,6 @@ public class MainClassStarter {
 
 
   public void runChangeSound(String[] args, Logger logger) {
-
     ProgramArguments programArguments = argumentsParsingController.getProgramArgumentsFromArgs(args, logger);
     startChangeSound(programArguments, logger);
   }
