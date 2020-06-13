@@ -21,6 +21,7 @@ public class GuiEntryPoint {
     }
 
     SwingUtilities.invokeLater(() -> new GuiEntryPoint().createGUI(logger));
+
   }
 
   public void createGUI(Logger logger) {

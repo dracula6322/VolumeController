@@ -38,7 +38,7 @@ public class ArgumentsParsingController {
     ProgramArguments programArguments = ArgumentsParsingController
         .parsingParams(args, defaultValueProgramArguments, logger);
 
-    String pathToNircmdFromResources = VolumeController.getInstance().getPathToNircmdFromResources();
+    String pathToNircmdFromResources = VolumeController.getInstance().getPathToNircmdFromResources(logger);
 
     programArguments.setPathToNircmd(pathToNircmdFromResources);
 

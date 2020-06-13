@@ -1,5 +1,7 @@
 import java.io.File;
-import java.net.URL;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,12 +31,18 @@ public class VolumeController {
     programExecutor.executeCommand(commandArray, "", logger);
   }
 
-  public String getPathToNircmdFromResources() {
-    URL urlToFile = getClass().getResource("nircmdc.exe");
-    if (urlToFile == null) {
-      return "";
+  public String getPathToNircmdFromResources(Logger logger) {
+
+    String result = "";
+    try {
+      URI exeFile = ResourceFileExtractor.getFile("nircmdc.exe");
+      File file = new File(exeFile);
+      result = file.getAbsolutePath();
+    } catch (IOException | URISyntaxException e) {
+      e.printStackTrace();
+      logger.error(e.getMessage(), e);
     }
-    return urlToFile.getPath();
+    return result;
   }
 
   public Pair<Integer, List<List<String>>> changeSoundLevel(String pathToNircmd, long deltaValue, Logger logger) {
@@ -53,7 +61,6 @@ public class VolumeController {
       boolean isSleepInTheEnd, boolean isScreenOff, long deltaValue) {
 
     logger.info("startChangeSound is running in " + Thread.currentThread());
-
 
     logger.info("pathToNircmd = " + pathToNircmd);
     logger.info("intervalInSecond = " + intervalInSeconds);
