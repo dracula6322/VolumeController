@@ -1,0 +1,4 @@
+.animated-gradient {
+    -gradient-base: #fff;
+    -fx-background-color: linear-gradient(to right top, -gradient-base, #0575E6);
+}

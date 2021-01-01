@@ -1,7 +1,6 @@
+package com.square.green.volumemanager;
+
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,6 +9,8 @@ import org.slf4j.Logger;
 public class VolumeController {
 
   public static class SingletonHolder {
+    private SingletonHolder(){
+    }
 
     public static final VolumeController HOLDER_INSTANCE = new VolumeController();
   }
@@ -17,9 +18,8 @@ public class VolumeController {
   public static VolumeController getInstance() {
     return SingletonHolder.HOLDER_INSTANCE;
   }
-
-  public static final long MAX_VOLUME_VALUE = 65535;
-  final ProgramExecutor programExecutor = ProgramExecutor.getInstance();
+  private static final long MAX_VOLUME_VALUE = 65535;
+  private final ProgramExecutor programExecutor = ProgramExecutor.getInstance();
 
   public void turnOffScreen(String pathToNircmd, Logger logger) {
     String[] commandArray = new String[]{pathToNircmd, "monitor", "off"};
@@ -31,20 +31,6 @@ public class VolumeController {
     programExecutor.executeCommand(commandArray, "", logger);
   }
 
-  public String getPathToNircmdFromResources(Logger logger) {
-
-    String result = "";
-    try {
-      URI exeFile = ResourceFileExtractor.getFile("nircmdc.exe");
-      File file = new File(exeFile);
-      result = file.getAbsolutePath();
-    } catch (IOException | URISyntaxException e) {
-      e.printStackTrace();
-      logger.error(e.getMessage(), e);
-    }
-    return result;
-  }
-
   public Pair<Integer, List<List<String>>> changeSoundLevel(String pathToNircmd, long deltaValue, Logger logger) {
     String[] commandArray = new String[]{pathToNircmd, "changesysvolume", String.valueOf(deltaValue)};
     return programExecutor.executeCommand(commandArray, "", logger);
@@ -52,7 +38,6 @@ public class VolumeController {
 
   public void startChangeSound(String pathToNircmd, int intervalInSeconds, int countTimer, Logger logger,
       boolean isSleepInTheEnd, boolean isScreenOff) {
-
     long deltaValue = -MAX_VOLUME_VALUE / countTimer;
     startChangeSound(pathToNircmd, intervalInSeconds, countTimer, logger, isSleepInTheEnd, isScreenOff, deltaValue);
   }
@@ -60,18 +45,17 @@ public class VolumeController {
   public void startChangeSound(String pathToNircmd, int intervalInSeconds, int countTimer, Logger logger,
       boolean isSleepInTheEnd, boolean isScreenOff, long deltaValue) {
 
-    logger.info("startChangeSound is running in " + Thread.currentThread());
-
-    logger.info("pathToNircmd = " + pathToNircmd);
-    logger.info("intervalInSecond = " + intervalInSeconds);
-    logger.info("countTimer = " + countTimer);
-    logger.info("isSleepInTheEnd = " + isSleepInTheEnd);
-    logger.info("isScreenOffInTheEnd = " + isScreenOff);
+    logger.info(String.format("startChangeSound is running in %s", Thread.currentThread()));
+    logger.info(String.format("pathToNircmd = %s", pathToNircmd));
+    logger.info(String.format("intervalInSecond = %d", intervalInSeconds));
+    logger.info(String.format("countTimer = %d", countTimer));
+    logger.info(String.format("isSleepInTheEnd = %s", isSleepInTheEnd));
+    logger.info(String.format("isScreenOffInTheEnd = %s", isScreenOff));
 
     File pathToNircmdExe = new File(pathToNircmd);
     if (!pathToNircmdExe.exists()) {
       logger.error("pathToNircmdExe is empty");
-      throw new RuntimeException();
+      throw new IllegalArgumentException();
     }
 
     boolean isInterrupted = false;
@@ -81,13 +65,13 @@ public class VolumeController {
       logger.info(executionResult.toString());
       try {
         Thread.sleep(TimeUnit.SECONDS.toMillis(intervalInSeconds));
-      } catch (InterruptedException e) {
+      } catch (InterruptedException exception) {
         isInterrupted = true;
-        logger.error(e.getMessage(), e);
-        e.printStackTrace();
+        Thread.currentThread().interrupt();
+        logger.error(exception.getMessage(), exception);
         break;
       }
-      logger.info(i + "/" + countTimer);
+      logger.info(String.format("%d/%d", i, countTimer));
     }
 
     if (isInterrupted) {
@@ -102,5 +86,4 @@ public class VolumeController {
       turnOffScreen(pathToNircmd, logger);
     }
   }
-
 }
