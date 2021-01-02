@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXTextField;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,12 +32,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JavaFxMainClass extends Application {
 
-  public static final String COURIER_NEW_FONT = "Times New Roman";
+  public static final String TIMES_NEW_ROMAN_FONT = "Times New Roman";
   public static final Logger logger = LoggerFactory.getLogger(JavaFxMainClass.class);
   private final ThreadFactory namedThreadFactory =
       new ThreadFactoryBuilder().setDaemon(true).setNameFormat("JavaFxMainClass %s").build();
@@ -63,12 +66,22 @@ public class JavaFxMainClass extends Application {
 
     invalidationListener = observable -> {
       String buttonText;
+
       try {
         String countNumber = countNumberTextInput.getText();
+        if (StringUtils.isBlank(countNumber)) {
+          return;
+        }
         int countNumberInt = Integer.parseInt(countNumber);
         String intervalNumber = intervalTextInput.getText();
+        if (StringUtils.isBlank(intervalNumber)) {
+          return;
+        }
         int intervalNumberInt = Integer.parseInt(intervalNumber);
-        buttonText = "Начать " + (countNumberInt * intervalNumberInt) + " сек";
+        long millis = (long) countNumberInt * intervalNumberInt * 1000;
+        TimeZone defaultTimeZone = TimeZone.getTimeZone("UTC");
+        String utc = DateFormatUtils.format(millis, "HH:mm:ss", defaultTimeZone);
+        buttonText = "Начать " + utc;
       } catch (Exception exception) {
         logger.error(exception.getMessage(), exception);
         buttonText = "Начать";
@@ -106,8 +119,8 @@ public class JavaFxMainClass extends Application {
     root.getStyleClass().add("animated-gradient");
 
     ObjectProperty<Color> baseColor = new SimpleObjectProperty<>();
-    KeyValue keyValue1 = new KeyValue(baseColor, Color.web("#ee7752"));
-    KeyValue keyValue2 = new KeyValue(baseColor, Color.web("#e73c7e"));
+    KeyValue keyValue1 = new KeyValue(baseColor, Color.web("#2BC0E4"));
+    KeyValue keyValue2 = new KeyValue(baseColor, Color.web("#6DD5FA"));
 
     KeyFrame keyFrame1 = new KeyFrame(Duration.ZERO, keyValue1);
     KeyFrame keyFrame2 = new KeyFrame(Duration.millis(15000), keyValue2);
@@ -130,8 +143,10 @@ public class JavaFxMainClass extends Application {
 
   private JFXTextField getCountNumberTextInput() {
     JFXTextField textField = new JFXTextField();
+    textField.setLabelFloat(true);
+    textField.setPadding(new Insets(24, 0, 0, 0));
     textField.setPromptText("Введите количество отсчетов");
-    textField.setFont(Font.font(COURIER_NEW_FONT, FontWeight.NORMAL, 20));
+    textField.setFont(Font.font(TIMES_NEW_ROMAN_FONT, FontWeight.NORMAL, 20));
     textField.setAlignment(Pos.CENTER);
     textField.textProperty().addListener(invalidationListener);
     textField.setMaxWidth(Double.MAX_VALUE);
@@ -140,8 +155,10 @@ public class JavaFxMainClass extends Application {
 
   private JFXTextField getIntervalTextInput() {
     JFXTextField textField = new JFXTextField();
+    textField.setLabelFloat(true);
+    textField.setPadding(new Insets(24, 0, 0, 0));
     textField.setPromptText("Введите время между отсчетами, сек");
-    textField.setFont(Font.font(COURIER_NEW_FONT, FontWeight.NORMAL, 20));
+    textField.setFont(Font.font(TIMES_NEW_ROMAN_FONT, FontWeight.NORMAL, 20));
     textField.setAlignment(Pos.CENTER);
     textField.textProperty().addListener(invalidationListener);
     textField.setMaxWidth(Double.MAX_VALUE);
@@ -151,7 +168,7 @@ public class JavaFxMainClass extends Application {
   private JFXButton getStopButton() {
     JFXButton button = new JFXButton();
     button.setText("Остановить");
-    button.setFont(Font.font(COURIER_NEW_FONT, FontWeight.NORMAL, 20));
+    button.setFont(Font.font(TIMES_NEW_ROMAN_FONT, FontWeight.NORMAL, 20));
     button.setMaxWidth(Double.MAX_VALUE);
     button.setBackground(
         new Background(new BackgroundFill(Color.PINK, new CornerRadii(8), Insets.EMPTY)));
@@ -161,10 +178,10 @@ public class JavaFxMainClass extends Application {
   private JFXButton getStartButton() {
     JFXButton button = new JFXButton();
     button.setText("Начать");
-    button.setFont(Font.font(COURIER_NEW_FONT, FontWeight.NORMAL, 20));
+    button.setFont(Font.font(TIMES_NEW_ROMAN_FONT, FontWeight.NORMAL, 20));
     button.setMaxWidth(Double.MAX_VALUE);
     button.setBackground(
-        new Background(new BackgroundFill(Color.GREEN, new CornerRadii(8), Insets.EMPTY)));
+        new Background(new BackgroundFill(Color.web("#22C6F0"), new CornerRadii(8), Insets.EMPTY)));
     button.setOnAction(actionEvent -> startChangingTheVolume());
     return button;
   }
@@ -221,14 +238,14 @@ public class JavaFxMainClass extends Application {
   private CheckBox getIsSleepCheckBox() {
     CheckBox checkBox = new JFXCheckBox();
     checkBox.setText("Отправить в сон?");
-    checkBox.setFont(Font.font(COURIER_NEW_FONT, FontWeight.NORMAL, 20));
+    checkBox.setFont(Font.font(TIMES_NEW_ROMAN_FONT, FontWeight.NORMAL, 20));
     return checkBox;
   }
 
   private JFXCheckBox getIsTurnOffTheScreenCheckBox() {
     JFXCheckBox checkBox = new JFXCheckBox();
     checkBox.setText("Выключить монитор?");
-    checkBox.setFont(Font.font(COURIER_NEW_FONT, FontWeight.NORMAL, 20));
+    checkBox.setFont(Font.font(TIMES_NEW_ROMAN_FONT, FontWeight.NORMAL, 20));
     return checkBox;
   }
 
@@ -240,6 +257,6 @@ public class JavaFxMainClass extends Application {
     } else {
       logMessage = "Thread not starting";
     }
-    JavaFxMainClass.logger.info(logMessage);
+    logger.info(logMessage);
   }
 }
